@@ -90,26 +90,15 @@ fi
 info "Setting up .claude/settings.json..."
 if [ -f .claude/settings.json ]; then
     info "Existing settings.json found, merging permissions..."
-    TEMPLATE_SETTINGS=$(curl -fsSL "$REPO_RAW_URL/templates/.claude/settings.json")
+    TEMPLATE_SETTINGS_TMP=$(mktemp)
+    curl -fsSL "$REPO_RAW_URL/templates/.claude/settings.json" -o "$TEMPLATE_SETTINGS_TMP"
 
-    # Use python3 to deep-merge the settings (available on virtually all systems)
-    MERGED=$(python3 -c "
-import json, sys
+    MERGE_SCRIPT_TMP=$(mktemp)
+    curl -fsSL "$REPO_RAW_URL/merge_settings.py" -o "$MERGE_SCRIPT_TMP"
 
-existing = json.load(open('.claude/settings.json'))
-template = json.loads('''$TEMPLATE_SETTINGS''')
-
-# Merge permissions.allow and permissions.deny as sets (no duplicates)
-for key in ('allow', 'deny'):
-    existing_list = existing.get('permissions', {}).get(key, [])
-    template_list = template.get('permissions', {}).get(key, [])
-    merged = list(dict.fromkeys(existing_list + template_list))
-    existing.setdefault('permissions', {})[key] = merged
-
-json.dump(existing, sys.stdout, indent=2)
-print()
-")
-    echo "$MERGED" > .claude/settings.json
+    python3 "$MERGE_SCRIPT_TMP" .claude/settings.json "$TEMPLATE_SETTINGS_TMP" > .claude/settings.json.tmp
+    mv .claude/settings.json.tmp .claude/settings.json
+    rm -f "$TEMPLATE_SETTINGS_TMP" "$MERGE_SCRIPT_TMP"
     success "Merged permissions into existing .claude/settings.json"
 else
     curl -fsSL "$REPO_RAW_URL/templates/.claude/settings.json" -o .claude/settings.json
