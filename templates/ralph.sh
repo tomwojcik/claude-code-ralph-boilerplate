@@ -17,13 +17,27 @@ for ((i=1; i<=$1; i++)); do
   echo "=== Iteration $i of $1 ==="
   echo
 
-  result=$(claude --permission-mode acceptEdits -p "@PRD.md @progress.txt \
-    1. Find the highest-priority incomplete task from PRD and implement it.
-    2. Run tests and type checks.
-    3. Commit the changes.
-    4. Append the completed task to progress.txt.
-    ONLY WORK ON A SINGLE TASK.
-    If all tasks are complete, output <promise>COMPLETE</promise>.")
+  result=$(claude -p "@PRD.md @progress.txt
+
+RULES FOR THIS NON-INTERACTIVE SESSION:
+- You are running in a NON-INTERACTIVE automated loop. There is NO human to answer questions.
+- NEVER use AskUserQuestion. NEVER ask the user anything. NEVER prompt for input.
+- NEVER ask which approach to use. Always pick the simplest/recommended/default option.
+- When you have a design choice, pick the simplest option that matches CLAUDE.md architecture decisions.
+- When you run into something that can't be implemented due to ambiguity or just lack of information, update the PRD item with BLOCKED prefix.
+- NEVER work on BLOCKED tasks, skip them entirely
+
+TASK:
+1. Read progress.txt to see what is already done.
+2. Find the highest-priority incomplete task in the PRD, that's not BLOCKED.
+3. Implement it fully (write code + tests where applicable).
+4. Run tests
+5. Run type checks
+6. If both pass, commit the changes with a descriptive commit message.
+7. Append the completed task to progress.txt and commit that too.
+
+ONLY WORK ON A SINGLE TASK. Do not start a second task.
+If all tasks are complete, output <promise>COMPLETE</promise>.")
 
   echo "$result"
   echo
