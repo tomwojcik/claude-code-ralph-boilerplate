@@ -36,7 +36,14 @@ Based on the [Ralph Wiggum Technique](https://ghuntley.com/ralph/) by [Geoffrey 
 ```
 
 - Human-in-the-loop. Claude asks you when something is unclear.
-- Uses `/run` slash command to implement the next task, then `/review` to review and push.
+- `/run` is not just a simple task runner — it orchestrates a full plugin-powered workflow:
+  - **superpowers:brainstorming** — designs the approach before writing code
+  - **superpowers:writing-plans** — breaks multi-step tasks into plans
+  - **superpowers:test-driven-development** — writes tests first
+  - **superpowers:systematic-debugging** — investigates before guessing
+  - **superpowers:verification-before-completion** — runs tests + Playwright MCP visual checks
+  - **Playwright MCP** — navigates to your app, takes snapshots, clicks through UI
+  - **Schema-first rule** — defines TypeScript interfaces before spawning subagents
 - Review step runs with `--model opus` for thorough code review.
 
 ## Prerequisites
