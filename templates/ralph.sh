@@ -17,7 +17,7 @@ for ((i=1; i<=$1; i++)); do
   echo "=== Iteration $i of $1 ==="
   echo
 
-  result=$(claude -p "@PRD.md @progress.txt
+  result=$(claude --permission-mode acceptEdits -p "@PRD.md @progress.txt
 
 RULES FOR THIS NON-INTERACTIVE SESSION:
 - You are running in a NON-INTERACTIVE automated loop. There is NO human to answer questions.
