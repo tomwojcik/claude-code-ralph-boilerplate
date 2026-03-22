@@ -29,6 +29,16 @@ echo -e "${NC}"
 echo "Claude Code Agentic Workflow Setup"
 echo "-----------------------------------"
 echo
+echo -e "${YELLOW}WARNING: These scripts run AI agents with --dangerously-skip-permissions.${NC}"
+echo -e "${YELLOW}This means agents can execute arbitrary code, modify files, and run commands${NC}"
+echo -e "${YELLOW}without asking for approval. Use at your own risk.${NC}"
+echo
+read -rp "$(echo -e "${BLUE}[?]${NC}") Do you accept the risk and want to continue? (y/n) " ACCEPT_RISK
+echo
+if [[ ! "$ACCEPT_RISK" =~ ^[Yy]$ ]]; then
+    info "Setup cancelled."
+    exit 0
+fi
 
 # Project name: use argument or current directory
 if [ -z "${1:-}" ]; then
@@ -72,11 +82,11 @@ success "Created run.sh (executable)"
 info "Setting up .claude/commands..."
 mkdir -p .claude/commands
 
-if [ -f .claude/commands/run.md ]; then
-    warn ".claude/commands/run.md already exists, skipping"
+if [ -f .claude/commands/implement.md ]; then
+    warn ".claude/commands/implement.md already exists, skipping"
 else
-    curl -fsSL "$REPO_RAW_URL/templates/.claude/commands/run.md" -o .claude/commands/run.md
-    success "Created .claude/commands/run.md"
+    curl -fsSL "$REPO_RAW_URL/templates/.claude/commands/implement.md" -o .claude/commands/implement.md
+    success "Created .claude/commands/implement.md"
 fi
 
 if [ -f .claude/commands/review.md ]; then
@@ -84,6 +94,36 @@ if [ -f .claude/commands/review.md ]; then
 else
     curl -fsSL "$REPO_RAW_URL/templates/.claude/commands/review.md" -o .claude/commands/review.md
     success "Created .claude/commands/review.md"
+fi
+
+# Docker setup (always included)
+info "Downloading Dockerfile.agent..."
+curl -fsSL "$REPO_RAW_URL/templates/Dockerfile.agent" -o Dockerfile.agent
+success "Created Dockerfile.agent"
+
+info "Downloading docker-compose.claude.yml..."
+curl -fsSL "$REPO_RAW_URL/templates/docker-compose.claude.yml" -o docker-compose.claude.yml
+success "Created docker-compose.claude.yml"
+
+# Optional Codex setup
+echo
+read -rp "$(echo -e "${BLUE}[?]${NC}") Copy Codex setup as well? (y/n) " COPY_CODEX
+echo
+
+if [[ "$COPY_CODEX" =~ ^[Yy]$ ]]; then
+    info "Downloading docker-compose.codex.yml..."
+    curl -fsSL "$REPO_RAW_URL/templates/docker-compose.codex.yml" -o docker-compose.codex.yml
+    success "Created docker-compose.codex.yml"
+
+    info "Downloading ralph-codex.sh..."
+    curl -fsSL "$REPO_RAW_URL/templates/ralph-codex.sh" -o ralph-codex.sh
+    chmod +x ralph-codex.sh
+    success "Created ralph-codex.sh (executable)"
+
+    info "Downloading run-codex.sh..."
+    curl -fsSL "$REPO_RAW_URL/templates/run-codex.sh" -o run-codex.sh
+    chmod +x run-codex.sh
+    success "Created run-codex.sh (executable)"
 fi
 
 # Merge settings.json: combine allow/deny lists without duplicates
@@ -121,7 +161,13 @@ else
     echo "  2. Customize .claude/settings.json for your stack"
 fi
 echo
-echo "Two execution modes:"
+echo "Claude Code execution modes (containerized):"
 echo "  ./ralph.sh 5    # Autonomous: 5 iterations, no human input"
 echo "  ./run.sh        # Interactive: human-in-the-loop + code review"
+if [[ "$COPY_CODEX" =~ ^[Yy]$ ]]; then
+    echo
+    echo "Codex modes (containerized):"
+    echo "  ./ralph-codex.sh 5  # Autonomous via Codex in Docker"
+    echo "  ./run-codex.sh      # Single iteration via Codex in Docker"
+fi
 echo
