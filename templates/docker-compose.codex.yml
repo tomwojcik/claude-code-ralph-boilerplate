@@ -11,7 +11,7 @@ services:
       - .:/workspace
       - ~/.codex:/home/codex/.codex
       - ~/.codex/auth.json:/home/codex/.codex/auth.json:ro
-      - ~/.codex/config.toml:/home/codex/.codex/config.toml:ro        
+      - ~/.codex/config.toml:/home/codex/.codex/config.toml:ro
       - ~/.gitconfig:/home/codex/.gitconfig:ro
     tmpfs:
       - /tmp

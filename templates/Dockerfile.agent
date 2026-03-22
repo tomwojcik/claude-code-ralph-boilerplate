@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     gnupg \
     wget \
+    bubblewrap \
     unzip \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get update \
