@@ -29,16 +29,9 @@ echo -e "${NC}"
 echo "Claude Code Agentic Workflow Setup"
 echo "-----------------------------------"
 echo
-echo -e "${YELLOW}WARNING: These scripts run AI agents with --dangerously-skip-permissions.${NC}"
-echo -e "${YELLOW}This means agents can execute arbitrary code, modify files, and run commands${NC}"
-echo -e "${YELLOW}without asking for approval. Use at your own risk.${NC}"
+warn "These scripts run AI agents with --dangerously-skip-permissions."
+warn "Agents can execute arbitrary code, modify files, and run commands without approval."
 echo
-read -rp "$(echo -e "${BLUE}[?]${NC}") Do you accept the risk and want to continue? (y/n) " ACCEPT_RISK
-echo
-if [[ ! "$ACCEPT_RISK" =~ ^[Yy]$ ]]; then
-    info "Setup cancelled."
-    exit 0
-fi
 
 # Project name: use argument or current directory
 if [ -z "${1:-}" ]; then
@@ -105,26 +98,20 @@ info "Downloading docker-compose.claude.yml..."
 curl -fsSL "$REPO_RAW_URL/templates/docker-compose.claude.yml" -o docker-compose.claude.yml
 success "Created docker-compose.claude.yml"
 
-# Optional Codex setup
-echo
-read -rp "$(echo -e "${BLUE}[?]${NC}") Copy Codex setup as well? (y/n) " COPY_CODEX
-echo
+# Codex setup
+info "Downloading docker-compose.codex.yml..."
+curl -fsSL "$REPO_RAW_URL/templates/docker-compose.codex.yml" -o docker-compose.codex.yml
+success "Created docker-compose.codex.yml"
 
-if [[ "$COPY_CODEX" =~ ^[Yy]$ ]]; then
-    info "Downloading docker-compose.codex.yml..."
-    curl -fsSL "$REPO_RAW_URL/templates/docker-compose.codex.yml" -o docker-compose.codex.yml
-    success "Created docker-compose.codex.yml"
+info "Downloading ralph-codex.sh..."
+curl -fsSL "$REPO_RAW_URL/templates/ralph-codex.sh" -o ralph-codex.sh
+chmod +x ralph-codex.sh
+success "Created ralph-codex.sh (executable)"
 
-    info "Downloading ralph-codex.sh..."
-    curl -fsSL "$REPO_RAW_URL/templates/ralph-codex.sh" -o ralph-codex.sh
-    chmod +x ralph-codex.sh
-    success "Created ralph-codex.sh (executable)"
-
-    info "Downloading run-codex.sh..."
-    curl -fsSL "$REPO_RAW_URL/templates/run-codex.sh" -o run-codex.sh
-    chmod +x run-codex.sh
-    success "Created run-codex.sh (executable)"
-fi
+info "Downloading run-codex.sh..."
+curl -fsSL "$REPO_RAW_URL/templates/run-codex.sh" -o run-codex.sh
+chmod +x run-codex.sh
+success "Created run-codex.sh (executable)"
 
 # Merge settings.json: combine allow/deny lists without duplicates
 info "Setting up .claude/settings.json..."
@@ -164,10 +151,8 @@ echo
 echo "Claude Code execution modes (containerized):"
 echo "  ./ralph.sh 5    # Autonomous: 5 iterations, no human input"
 echo "  ./run.sh        # Interactive: human-in-the-loop + code review"
-if [[ "$COPY_CODEX" =~ ^[Yy]$ ]]; then
-    echo
-    echo "Codex modes (containerized):"
-    echo "  ./ralph-codex.sh 5  # Autonomous via Codex in Docker"
-    echo "  ./run-codex.sh      # Single iteration via Codex in Docker"
-fi
+echo
+echo "Codex execution modes (containerized):"
+echo "  ./ralph-codex.sh 5  # Autonomous via Codex in Docker"
+echo "  ./run-codex.sh      # Single iteration via Codex in Docker"
 echo
