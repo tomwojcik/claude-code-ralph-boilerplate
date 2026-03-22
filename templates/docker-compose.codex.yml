@@ -1,0 +1,30 @@
+services:
+  codex:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+      target: codex
+    user: "1000:1000"
+    network_mode: bridge
+    read_only: true
+    volumes:
+      - .:/workspace
+      - ~/.codex:/home/codex/.codex
+      - ~/.codex/auth.json:/home/codex/.codex/auth.json:ro
+      - ~/.codex/config.toml:/home/codex/.codex/config.toml:ro        
+        - ~/.gitconfig:/home/codex/.gitconfig:ro
+    tmpfs:
+      - /tmp
+      - /home/codex/.cache
+      - /home/codex/.npm
+      - /home/codex/.local/share
+      - /home/codex/.gradle
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    mem_limit: 4g
+    cpus: 4
+    stdin_open: true
+    tty: true

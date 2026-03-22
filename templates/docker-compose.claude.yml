@@ -1,0 +1,34 @@
+services:
+  claude:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+      target: claude
+    user: "1000:1000"
+    network_mode: bridge
+    read_only: true
+    env_file:
+      - .env.claude
+    volumes:
+      - .:/workspace
+      - ~/.claude:/home/claude/.claude
+      - ~/.claude/ide:/home/claude/.claude/ide:ro
+      - ~/.claude/backups:/home/claude/.claude/backups:ro
+      - ~/.claude/settings.json:/home/claude/.claude/settings.json:ro
+      - ~/.claude.json:/home/claude/.claude.json:ro
+      - ~/.gitconfig:/home/claude/.gitconfig:ro
+    tmpfs:
+      - /tmp
+      - /home/claude/.cache
+      - /home/claude/.npm
+      - /home/claude/.local/share
+      - /home/claude/.gradle
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    mem_limit: 4g
+    cpus: 4
+    stdin_open: true
+    tty: true

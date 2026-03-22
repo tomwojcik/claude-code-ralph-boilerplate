@@ -3,13 +3,5 @@ set -e
 
 cd "$(dirname "$0")"
 
-# Activate nvm if .nvmrc exists
-if [ -f ".nvmrc" ]; then
-  export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-  nvm use
-fi
-
-claude --permission-mode acceptEdits "/run"
-
-claude --permission-mode acceptEdits --model opus "/review"
+docker compose -f docker-compose.claude.yml run --rm claude "/implement"
+docker compose -f docker-compose.claude.yml run --rm claude "/review"

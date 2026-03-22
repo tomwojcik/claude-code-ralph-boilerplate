@@ -14,37 +14,45 @@ echo "Starting Ralph workflow with $1 iteration(s)..."
 echo
 
 for ((i=1; i<=$1; i++)); do
-  echo "=== Iteration $i of $1 ==="
+  if ! grep -q '^\- \[ \]' PRD.md; then
+    echo "No remaining empty tasks in PRD.md — stopping early."
+    break
+  fi
+
+  echo "=== Iteration $i of $1 === $(date '+%Y-%m-%d %H:%M:%S') ==="
   echo
 
-  result=$(claude --permission-mode acceptEdits -p "@PRD.md @progress.txt
-
+  echo "
 RULES FOR THIS NON-INTERACTIVE SESSION:
 - You are running in a NON-INTERACTIVE automated loop. There is NO human to answer questions.
-- NEVER use AskUserQuestion. NEVER ask the user anything. NEVER prompt for input.
-- NEVER ask which approach to use. Always pick the simplest/recommended/default option.
-- When you have a design choice, pick the simplest option that matches CLAUDE.md architecture decisions.
-- When you run into something that can't be implemented due to ambiguity or just lack of information, update the PRD item with BLOCKED prefix.
-- NEVER work on BLOCKED tasks, skip them entirely
+- NEVER use AskUserQuestion. Always pick the simplest/default option.
+- When blocked by ambiguity, update the PRD item with BLOCKED prefix and skip it.
+- NEVER work on BLOCKED tasks.
+- If all tasks are complete, output <promise>COMPLETE</promise>.
 
-TASK:
-1. Read progress.txt to see what is already done.
-2. Find the highest-priority incomplete task in the PRD, that's not BLOCKED.
-3. Implement it fully (write code + tests where applicable).
-4. Run tests
-5. Run type checks
-6. If both pass, commit the changes with a descriptive commit message.
-7. Append the completed task to progress.txt and commit that too.
-
-ONLY WORK ON A SINGLE TASK. Do not start a second task.
-If all tasks are complete, output <promise>COMPLETE</promise>.")
-
-  echo "$result"
+/implement" | docker compose -f docker-compose.claude.yml run --rm -T claude
   echo
+  echo "=== Review for iteration $i === $(date '+%Y-%m-%d %H:%M:%S') ==="
+  echo
+  echo "
+RULES FOR THIS NON-INTERACTIVE SESSION:
+- You are running in a NON-INTERACTIVE automated loop. There is NO human to answer questions.
+- NEVER use AskUserQuestion. Always pick the simplest/default option.
 
-  if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
-    echo "All tasks complete!"
-    exit 0
+/review" | docker compose -f docker-compose.claude.yml run --rm -T claude
+  echo
+  # Retry git push up to 3 times; skip gracefully if GitHub is unreachable
+  push_ok=false
+  for attempt in 1 2 3; do
+    if git push 2>/dev/null; then
+      push_ok=true
+      break
+    fi
+    echo "  git push attempt $attempt failed, retrying in 10s..."
+    sleep 10
+  done
+  if [ "$push_ok" = false ]; then
+    echo "  WARNING: git push failed after 3 attempts — skipping, will retry next iteration"
   fi
 done
 
