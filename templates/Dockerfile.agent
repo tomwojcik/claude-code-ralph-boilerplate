@@ -34,9 +34,20 @@ ENTRYPOINT ["/usr/bin/codex"]
 
 FROM base AS claude
 
-RUN npm i -g @anthropic-ai/claude-code \
-    && useradd -m -s /bin/bash -u 1000 claude
+RUN useradd -m -u 1000 -s /bin/bash claude
 
 USER claude
+WORKDIR /home/claude
 
-ENTRYPOINT ["/usr/bin/claude", "--dangerously-skip-permissions"]
+RUN curl -fsSL https://claude.ai/install.sh | bash
+
+USER root
+RUN chmod -R go+rwX /home/claude
+USER claude
+
+ENV PATH="/home/claude/.local/bin:${PATH}"
+ENV HOME="/home/claude"
+
+WORKDIR /workspace
+
+ENTRYPOINT ["claude", "--dangerously-skip-permissions"]

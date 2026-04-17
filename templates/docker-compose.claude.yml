@@ -4,25 +4,24 @@ services:
       context: .
       dockerfile: Dockerfile.agent
       target: claude
-    user: "1000:1000"
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     network_mode: bridge
     read_only: true
     env_file:
       - .env.claude
+    working_dir: ${PWD}
     volumes:
+      - ${PWD}:${PWD}
       - .:/workspace
       - ~/.claude:/home/claude/.claude
       - ~/.claude/ide:/home/claude/.claude/ide:ro
       - ~/.claude/backups:/home/claude/.claude/backups:ro
       - ~/.claude/settings.json:/home/claude/.claude/settings.json:ro
-      - ~/.claude.json:/home/claude/.claude.json:ro
+      - ~/.claude.json:/home/claude/.claude.json
       - ~/.gitconfig:/home/claude/.gitconfig:ro
     tmpfs:
       - /tmp
       - /home/claude/.cache
-      - /home/claude/.npm
-      - /home/claude/.local/share
-      - /home/claude/.gradle
     security_opt:
       - no-new-privileges:true
     cap_drop:

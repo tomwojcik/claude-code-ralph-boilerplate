@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+export HOST_UID=$(id -u)
+export HOST_GID=$(id -g)
+
 if [ -z "${1:-}" ]; then
   echo "Usage: $0 <iterations>"
   echo "  iterations: number of task cycles to run"
