@@ -19,24 +19,6 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip install --break-system-packages polars
 
-RUN wget -q https://download.oracle.com/java/25/latest/jdk-25_linux-x64_bin.tar.gz -O /tmp/jdk.tar.gz \
-    && mkdir -p /usr/lib/jvm \
-    && tar -xzf /tmp/jdk.tar.gz -C /usr/lib/jvm \
-    && rm /tmp/jdk.tar.gz
-
-RUN ln -s /usr/lib/jvm/jdk-25* /usr/lib/jvm/jdk-25
-ENV JAVA_HOME=/usr/lib/jvm/jdk-25
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
-
-RUN wget -q https://services.gradle.org/distributions/gradle-8.14.4-bin.zip -O /tmp/gradle.zip \
-    && unzip -q /tmp/gradle.zip -d /opt \
-    && rm /tmp/gradle.zip \
-    && ln -s /opt/gradle-8.14.4 /opt/gradle
-ENV GRADLE_HOME=/opt/gradle
-ENV PATH="${GRADLE_HOME}/bin:${PATH}"
-
-ENV PATH="/usr/bin:/usr/local/bin:${JAVA_HOME}/bin:${PATH}"
-
 WORKDIR /workspace
 
 FROM base AS codex
